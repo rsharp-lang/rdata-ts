@@ -74,7 +74,12 @@ declare class LengthRewriter extends Transform {
     });
     _transform(buf: any, encoding: any, callback: any): void;
 }
-declare function KeyExtractor(key: any, options: any): any;
+declare class KeyExtractor extends Transform {
+    constructor(key: any, options?: {
+        objectMode: boolean;
+    });
+    _transform(obj: any, encoding: any, callback: any): void;
+}
 declare class ByteWriter extends Transform {
     constructor(transform: any, options?: {
         objectMode: boolean;

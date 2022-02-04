@@ -31,28 +31,20 @@ class LengthRewriter extends Transform {
 }
 
 
+class KeyExtractor extends Transform {
 
-
-function KeyExtractor(key, options) {
-  if (!(this instanceof KeyExtractor)) {
-    return new KeyExtractor(key, options);
+  public constructor(key, options = { objectMode: true }) {
+    super(key, options);
+    options.objectMode = true;
+    console.log("Extracting key", key);
+    this.key = key;
   }
 
-  if (!options) {
-    options = {};
-  }
-  options.objectMode = true;
-  console.log("Extracting key", key);
-  this.key = key;
-  Transform.call(this, options);
+  _transform(obj, encoding, callback) {
+    this.push(obj[this.key] || Null);
+    callback();
+  };
 }
-
-inherits(KeyExtractor, Transform);
-
-KeyExtractor.prototype._transform = function _transform(obj, encoding, callback) {
-  this.push(obj[this.key] || Null);
-  callback();
-};
 
 
 class ByteWriter extends Transform {
@@ -60,7 +52,7 @@ class ByteWriter extends Transform {
   public constructor(transform, options = { objectMode: true }) {
     super(transform, options);
     options.objectMode = true;
-    this.transform = transform; 
+    this.transform = transform;
     this._readableState.objectMode = false;
   }
 
