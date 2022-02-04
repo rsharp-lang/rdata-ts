@@ -437,23 +437,23 @@ KeyExtractor.prototype._transform = function _transform(obj, encoding, callback)
     this.push(obj[this.key] || Null);
     callback();
 };
-function ByteWriter(transform, options) {
-    if (!(this instanceof ByteWriter)) {
-        return new ByteWriter(transform, options);
+var ByteWriter = /** @class */ (function (_super) {
+    __extends(ByteWriter, _super);
+    function ByteWriter(transform, options) {
+        if (options === void 0) { options = { objectMode: true }; }
+        var _this = _super.call(this, transform, options) || this;
+        options.objectMode = true;
+        _this.transform = transform;
+        _this._readableState.objectMode = false;
+        return _this;
     }
-    if (!options) {
-        options = {};
-    }
-    options.objectMode = true;
-    this.transform = transform;
-    Transform.call(this, options);
-    this._readableState.objectMode = false;
-}
-inherits(ByteWriter, Transform);
-ByteWriter.prototype._transform = function _transform(obj, encoding, callback) {
-    this.push(this.transform(obj === Null ? null : obj));
-    callback();
-};
+    ByteWriter.prototype._transform = function (obj, encoding, callback) {
+        this.push(this.transform(obj === Null ? null : obj));
+        callback();
+    };
+    ;
+    return ByteWriter;
+}(Transform));
 var ObjectCounter = /** @class */ (function (_super) {
     __extends(ObjectCounter, _super);
     function ObjectCounter(options) {

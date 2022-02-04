@@ -55,26 +55,20 @@ KeyExtractor.prototype._transform = function _transform(obj, encoding, callback)
 };
 
 
-function ByteWriter(transform, options) {
-  if (!(this instanceof ByteWriter)) {
-    return new ByteWriter(transform, options);
+class ByteWriter extends Transform {
+
+  public constructor(transform, options = { objectMode: true }) {
+    super(transform, options);
+    options.objectMode = true;
+    this.transform = transform; 
+    this._readableState.objectMode = false;
   }
 
-  if (!options) {
-    options = {};
-  }
-  options.objectMode = true;
-  this.transform = transform;
-  Transform.call(this, options);
-  this._readableState.objectMode = false;
+  _transform(obj, encoding, callback) {
+    this.push(this.transform(obj === Null ? null : obj));
+    callback();
+  };
 }
-
-inherits(ByteWriter, Transform);
-
-ByteWriter.prototype._transform = function _transform(obj, encoding, callback) {
-  this.push(this.transform(obj === Null ? null : obj));
-  callback();
-};
 
 
 class ObjectCounter extends Transform {
