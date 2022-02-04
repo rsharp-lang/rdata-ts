@@ -1,0 +1,42 @@
+{
+  "name": "rdata",
+  "version": "0.0.0",
+  "description": "rdata",
+  "main": "app.js",
+  "author": {
+    "name": ""
+  },
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha",
+    "lint": "./node_modules/jshint/bin/jshint lib/*.js",
+    "validate": "npm ls",
+	"build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hirenj/node-rdata.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hirenj/node-rdata/issues"
+  },
+  "homepage": "https://github.com/hirenj/node-rdata",
+  "devDependencies": {
+    "jshint": "^2.9.2",
+    "precommit-hook": "^3.0.0",
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3",
+	"@types/node": "^14.14.7",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "archiver": "^1.3.0",
+    "async": "^2.1.1",
+    "temp": "^0.8.3"
+  },
+  "pre-commit": [
+    "lint",
+    "validate"
+  ]
+}
