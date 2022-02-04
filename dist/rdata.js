@@ -140,6 +140,7 @@ var ObjectWriter = /** @class */ (function () {
         if (options === void 0) { options = { gzip: true }; }
         var _this = this;
         this.stream = stream;
+        this.write_vector = function (vector, method) { return encoder.write_vector(_this, vector, method); };
         this.dataFrame = function (object, keys, types, options) {
             if (options === void 0) { options = {}; }
             return encoder.dataFrame(_this, object, keys, types, options);
@@ -157,19 +158,41 @@ var ObjectWriter = /** @class */ (function () {
         this.stream.write(buffer);
     };
     ;
-    ObjectWriter.prototype.stringVector = function () { };
+    ObjectWriter.prototype.stringVector = function (vector) {
+        var self = this;
+        this.write(encode_int(encode_flags(STRSXP)));
+        this.write(encode_int(vector.length || vector.total));
+        return write_vector.bind(self)(vector, stringScalar);
+    };
     ;
-    ObjectWriter.prototype.realVector = function () { };
+    ObjectWriter.prototype.realVector = function (vector) {
+        var self = this;
+        this.write(encode_int(encode_flags(REALSXP)));
+        this.write(encode_int(vector.length || vector.total));
+        return write_vector.bind(self)(vector, realScalar);
+    };
     ;
-    ObjectWriter.prototype.intVector = function () { };
+    ObjectWriter.prototype.intVector = function (vector) {
+        var self = this;
+        this.write(encode_int(encode_flags(INTSXP)));
+        this.write(encode_int(vector.length || vector.total));
+        return write_vector.bind(self)(vector, intScalar);
+    };
     ;
-    ObjectWriter.prototype.logicalVector = function () { };
+    ObjectWriter.prototype.logicalVector = function (vector) {
+        var self = this;
+        this.write(encode_int(encode_flags(LGLSXP)));
+        this.write(encode_int(vector.length || vector.total));
+        return write_vector.bind(self)(vector, logicalScalar);
+    };
     ;
     ObjectWriter.prototype.listPairs = function () { };
     ;
     ObjectWriter.prototype.environment = function () { };
     ;
-    ObjectWriter.prototype.writeHeader = function () { };
+    ObjectWriter.prototype.writeHeader = function () {
+        return encoder.save.writeHeader(this);
+    };
     ;
     ObjectWriter.prototype.finish = function () {
         var self = this;
@@ -220,15 +243,15 @@ var encoder;
         if (options === void 0) { options = {}; }
         var length = options.length;
         if (object instanceof Stream && object._readableState.objectMode) {
-            return (consume_frame_stream.bind(self))(object, keys, types, options);
+            return (encoder.consume_frame_stream.bind(self))(object, keys, types, options);
         }
-        this.write(encode_int(encode_flags(VECSXP, { is_object: true, has_attributes: true })));
-        this.write(encode_int(keys.length));
+        this.write(encoder.encode_int(encoder.encode_flags(VECSXP, { is_object: true, has_attributes: true })));
+        this.write(encoder.encode_int(keys.length));
         if (length === null || typeof length === "undefined") {
             length = object[keys[0]].length;
         }
         if ((length === null || typeof length === "undefined") && object[keys[0]] instanceof Stream) {
-            length = extract_length(object[keys[0]]);
+            length = encoder.extract_length(object[keys[0]]);
         }
         else {
             length = Promise.resolve(length);
@@ -265,20 +288,20 @@ var encoder;
 })(encoder || (encoder = {}));
 var encoder;
 (function (encoder) {
-    var packed_version = function (v, p, s) {
+    encoder.packed_version = function (v, p, s) {
         return s + (p * 256) + (v * 65536);
     };
-    var encode_int = function (value) {
+    encoder.encode_int = function (value) {
         var buf = new Buffer(4);
         buf.writeInt32BE(value);
         return buf;
     };
-    var encode_real = function (value) {
+    encoder.encode_real = function (value) {
         var buf = new Buffer(8);
         buf.writeDoubleBE(value);
         return buf;
     };
-    var encode_flags = function (base_type, options) {
+    encoder.encode_flags = function (base_type, options) {
         if (!options) {
             options = {};
         }
@@ -294,92 +317,68 @@ var encoder;
         }
         return flags;
     };
-    var stringScalar = function (string) {
+    encoder.stringScalar = function (string) {
         // NA val - 0000 0009 ffff ffff
-        var type = encode_int(CHARSXP | (ASCII_MASK << 12));
+        var type = encoder.encode_int(CHARSXP | (ASCII_MASK << 12));
         if (string === null) {
-            type = encode_int(CHARSXP);
-            return Buffer.concat([type, encode_int(NA_STRING)]);
+            type = encoder.encode_int(CHARSXP);
+            return Buffer.concat([type, encoder.encode_int(NA_STRING)]);
         }
         var bytes = new Buffer(string);
-        var length = encode_int(bytes.length);
+        var length = encoder.encode_int(bytes.length);
         return Buffer.concat([type, length, bytes]);
     };
-    var realScalar = function (real) {
+    encoder.realScalar = function (real) {
         if (real === null) {
             return NA_REAL;
         }
-        return encode_real(real);
+        return encoder.encode_real(real);
     };
-    var intScalar = function (int) {
+    encoder.intScalar = function (int) {
         if (int === null) {
             int = NA_INT;
         }
         if (!Number.isFinite(int)) {
             int = NA_INT;
         }
-        return encode_int(int);
+        return encoder.encode_int(int);
     };
-    var logicalScalar = function (bool) {
+    encoder.logicalScalar = function (bool) {
         if (bool === null) {
-            return encode_int(NA_INT);
+            return encoder.encode_int(NA_INT);
         }
-        return encode_int(bool ? 1 : 0);
+        return encoder.encode_int(bool ? 1 : 0);
     };
-    var stringVector = function (vector) {
-        var self = this;
-        this.write(encode_int(encode_flags(STRSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, stringScalar);
-    };
-    var realVector = function (vector) {
-        var self = this;
-        this.write(encode_int(encode_flags(REALSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, realScalar);
-    };
-    var intVector = function (vector) {
-        var self = this;
-        this.write(encode_int(encode_flags(INTSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, intScalar);
-    };
-    var logicalVector = function (vector) {
-        var self = this;
-        this.write(encode_int(encode_flags(LGLSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, logicalScalar);
-    };
-    var symbol = function (string) {
-        this.write(encode_int(encode_flags(SYMSXP)));
-        this.write(stringScalar(string));
+    encoder.symbol = function (string) {
+        this.write(encoder.encode_int(encoder.encode_flags(SYMSXP)));
+        this.write(encoder.stringScalar(string));
         return Promise.resolve();
     };
-    var listPairs = function (pairs, keys, types) {
+    encoder.listPairs = function (pairs, keys, types) {
         var self = this;
         return new Promise(function (resolve, reject) {
             async.eachOfSeries(keys, function (key, idx, callback) {
-                self.write(encode_int(encode_flags(LISTSXP, { has_tag: true })));
-                symbol.call(self, key);
+                self.write(encoder.encode_int(encoder.encode_flags(LISTSXP, { has_tag: true })));
+                encoder.symbol.call(self, key);
                 writeValue.call(self, pairs[key], types[idx]).then(callback).catch(callback);
             }, function (err) {
                 if (err) {
                     reject(err);
                 }
                 else {
-                    self.write(encode_int(NILVALUESXP));
+                    self.write(encoder.encode_int(NILVALUESXP));
                     resolve();
                 }
             });
         });
     };
-    var environment = function (pairs, types_map) {
+    encoder.environment = function (pairs, types_map) {
         var self = this;
         var keys = Object.keys(pairs);
         var types = keys.map(function (key) { return types_map[key]; });
         return self.listPairs(pairs, keys, types);
     };
-    var consume_frame_stream = function (objects, keys, types, options) {
+    encoder.consume_frame_stream = function (objects, keys, types, options) {
         var self = this;
         var outputs = keys.map(function (key, idx) {
             var stream = new Stream.PassThrough({ objectMode: true });
@@ -412,7 +411,7 @@ var encoder;
             return self.dataFrame(frame, keys, types, options);
         });
     };
-    var extract_length = function (stream) {
+    encoder.extract_length = function (stream) {
         return new Promise(function (resolve, reject) {
             stream.on("error", reject);
             stream.once("data", function (dat) {
@@ -429,17 +428,48 @@ var encoder;
 })(encoder || (encoder = {}));
 var encoder;
 (function (encoder) {
+    encoder.write_vector = function (self, vector, method) {
+        if (vector instanceof Stream && vector._readableState.objectMode) {
+            var byte_pipe_1 = vector.pipe(new transforms.ByteWriter(method.bind(self)));
+            byte_pipe_1.pipe(self.stream, { end: false });
+            return new Promise(function (resolve) {
+                // We want to specifically end
+                // the promise once we have no more
+                // readable elements left in the queue
+                byte_pipe_1.on("end", resolve);
+            });
+        }
+        else {
+            return new Promise(function (resolve, reject) {
+                async.eachOfSeries(vector, function (el, idx, callback) {
+                    self.write(method(el));
+                    process.nextTick(callback);
+                }, function (err) {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve();
+                    }
+                });
+            }).catch(function (err) {
+                console.log(err);
+            });
+        }
+    };
+})(encoder || (encoder = {}));
+var encoder;
+(function (encoder) {
     var save;
     (function (save) {
-        save.writeHeader = function () {
-            this.write(new Buffer("RDX2\nX\n"));
-            this.write(encode_int(2));
-            this.write(encode_int(packed_version(3, 0, 0)));
-            this.write(encode_int(packed_version(2, 3, 0)));
+        save.writeHeader = function (vm) {
+            vm.write(new Buffer("RDX2\nX\n"));
+            vm.write(encoder.encode_int(2));
+            vm.write(encoder.encode_int(encoder.packed_version(3, 0, 0)));
+            vm.write(encoder.encode_int(encoder.packed_version(2, 3, 0)));
             return Promise.resolve();
         };
-        save.writeValue = function (value, type, length) {
-            var self = this;
+        save.writeValue = function (self, value, type, length) {
             // When we pass a buffer stream to the writeValue, we assume
             // that we are taking a stream of encoded bytes
             // If we wish to rewrite the length portion of the
@@ -448,7 +478,7 @@ var encoder;
             if (value instanceof Stream.Readable && !value._readableState.objectMode) {
                 var target_stream_1 = value;
                 if (typeof length !== "undefined") {
-                    target_stream_1 = value.pipe(new LengthRewriter(length));
+                    target_stream_1 = value.pipe(new transforms.LengthRewriter(length));
                 }
                 target_stream_1.pipe(self.stream, { end: false });
                 return new Promise(function (resolve, reject) {
@@ -458,54 +488,24 @@ var encoder;
             }
             var value_written = null;
             if (type === "string") {
-                value_written = this.stringVector(value);
+                value_written = self.stringVector(value);
             }
             if (type === "int") {
-                value_written = this.intVector(value);
+                value_written = self.intVector(value);
             }
             if (type === "real") {
-                value_written = this.realVector(value);
+                value_written = self.realVector(value);
             }
             if (type === "logical") {
-                value_written = this.logicalVector(value);
+                value_written = self.logicalVector(value);
             }
             if (type.type === "dataframe") {
-                value_written = this.dataFrame(value, type.keys, type.types, (type.attributes ? { attributes: type.attributes } : {}));
+                value_written = self.dataFrame(value, type.keys, type.types, (type.attributes ? { attributes: type.attributes } : {}));
             }
             if (!value_written) {
                 value_written = Promise.reject(new Error("No valid data type given"));
             }
             return value_written;
-        };
-        save.write_vector = function (vector, method) {
-            var self = this;
-            if (vector instanceof Stream && vector._readableState.objectMode) {
-                var byte_pipe_1 = vector.pipe(new ByteWriter(method.bind(self)));
-                byte_pipe_1.pipe(this.stream, { end: false });
-                return new Promise(function (resolve) {
-                    // We want to specifically end
-                    // the promise once we have no more
-                    // readable elements left in the queue
-                    byte_pipe_1.on("end", resolve);
-                });
-            }
-            else {
-                return new Promise(function (resolve, reject) {
-                    async.eachOfSeries(vector, function (el, idx, callback) {
-                        self.write(method(el));
-                        process.nextTick(callback);
-                    }, function (err) {
-                        if (err) {
-                            reject(err);
-                        }
-                        else {
-                            resolve();
-                        }
-                    });
-                }).catch(function (err) {
-                    console.log(err);
-                });
-            }
         };
     })(save = encoder.save || (encoder.save = {}));
 })(encoder || (encoder = {}));

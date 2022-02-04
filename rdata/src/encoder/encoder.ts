@@ -1,22 +1,22 @@
 namespace encoder {
 
-    let packed_version = function (v, p, s) {
+    export const packed_version = function (v, p, s) {
         return s + (p * 256) + (v * 65536);
     };
 
-    let encode_int = function (value) {
+    export const encode_int = function (value) {
         let buf = new Buffer(4);
         buf.writeInt32BE(value);
         return buf;
     };
 
-    const encode_real = function (value) {
+    export const encode_real = function (value) {
         let buf = new Buffer(8);
         buf.writeDoubleBE(value);
         return buf;
     };
 
-    let encode_flags = function (base_type, options) {
+    export const encode_flags = function (base_type, options) {
         if (!options) {
             options = {};
         }
@@ -36,7 +36,7 @@ namespace encoder {
         return flags;
     };
 
-    const stringScalar = function (string) {
+    export const stringScalar = function (string) {
         // NA val - 0000 0009 ffff ffff
         let type = encode_int(CHARSXP | (ASCII_MASK << 12));
         if (string === null) {
@@ -48,14 +48,14 @@ namespace encoder {
         return Buffer.concat([type, length, bytes]);
     };
 
-    const realScalar = function (real) {
+    export const realScalar = function (real) {
         if (real === null) {
             return NA_REAL;
         }
         return encode_real(real);
     };
 
-    const intScalar = function (int) {
+    export const intScalar = function (int) {
         if (int === null) {
             int = NA_INT;
         }
@@ -65,48 +65,20 @@ namespace encoder {
         return encode_int(int);
     };
 
-    const logicalScalar = function (bool) {
+    export const logicalScalar = function (bool) {
         if (bool === null) {
             return encode_int(NA_INT);
         }
         return encode_int(bool ? 1 : 0);
     };
 
-    const stringVector = function (vector) {
-        let self = this;
-        this.write(encode_int(encode_flags(STRSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, stringScalar);
-    };
-
-    const realVector = function (vector) {
-        let self = this;
-        this.write(encode_int(encode_flags(REALSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, realScalar);
-    };
-
-    const intVector = function (vector) {
-        let self = this;
-        this.write(encode_int(encode_flags(INTSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, intScalar);
-    };
-
-    const logicalVector = function (vector) {
-        let self = this;
-        this.write(encode_int(encode_flags(LGLSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, logicalScalar);
-    };
-
-    const symbol = function (string) {
+    export const symbol = function (string) {
         this.write(encode_int(encode_flags(SYMSXP)));
         this.write(stringScalar(string));
         return Promise.resolve();
     };
 
-    const listPairs = function (pairs, keys, types) {
+    export const listPairs = function (pairs, keys, types) {
         let self = this;
         return new Promise(function (resolve, reject) {
             async.eachOfSeries(keys, function (key, idx, callback) {
@@ -124,14 +96,14 @@ namespace encoder {
         });
     };
 
-    const environment = function (pairs, types_map) {
+    export const environment = function (pairs, types_map) {
         let self = this;
         let keys = Object.keys(pairs);
         let types = keys.map((key) => types_map[key]);
         return self.listPairs(pairs, keys, types);
     };
 
-    const consume_frame_stream = function (objects, keys, types, options) {
+    export const consume_frame_stream = function (objects, keys, types, options) {
         let self = this;
         let outputs = keys.map(function (key, idx) {
             let stream = new Stream.PassThrough({ objectMode: true });
@@ -165,7 +137,7 @@ namespace encoder {
         });
     };
 
-    const extract_length = function (stream) {
+    export const extract_length = function (stream) {
         return new Promise((resolve, reject) => {
             stream.on("error", reject);
             stream.once("data", (dat) => {

@@ -125,14 +125,15 @@ declare class ObjectWriter {
         gzip: boolean;
     });
     write(buffer: any): void;
-    stringVector(): void;
-    realVector(): void;
-    intVector(): void;
-    logicalVector(): void;
+    write_vector: (vector: any, method: any) => Promise<void | {}>;
+    stringVector(vector: any): any;
+    realVector(vector: any): any;
+    intVector(vector: any): any;
+    logicalVector(vector: any): any;
     listPairs(): void;
     environment(): void;
     dataFrame: (object: any, keys: any, types: any, options?: {}) => any;
-    writeHeader(): void;
+    writeHeader(): Promise<void>;
     finish(): Promise<{}>;
 }
 declare namespace package {
@@ -143,11 +144,26 @@ declare namespace encoder {
     const dataFrame: (self: ObjectWriter, object: any, keys: any, types: any, options?: {}) => any;
 }
 declare namespace encoder {
+    const packed_version: (v: any, p: any, s: any) => any;
+    const encode_int: (value: any) => Buffer;
+    const encode_real: (value: any) => Buffer;
+    const encode_flags: (base_type: any, options: any) => any;
+    const stringScalar: (string: any) => Buffer;
+    const realScalar: (real: any) => Buffer;
+    const intScalar: (int: any) => Buffer;
+    const logicalScalar: (bool: any) => Buffer;
+    const symbol: (string: any) => Promise<void>;
+    const listPairs: (pairs: any, keys: any, types: any) => Promise<{}>;
+    const environment: (pairs: any, types_map: any) => any;
+    const consume_frame_stream: (objects: any, keys: any, types: any, options: any) => Promise<any>;
+    const extract_length: (stream: any) => Promise<{}>;
+}
+declare namespace encoder {
+    const write_vector: (self: ObjectWriter, vector: any, method: any) => Promise<void | {}>;
 }
 declare namespace encoder.save {
-    const writeHeader: () => Promise<void>;
-    const writeValue: (value: any, type: any, length: any) => any;
-    const write_vector: (vector: any, method: any) => Promise<void | {}>;
+    const writeHeader: (vm: ObjectWriter) => Promise<void>;
+    const writeValue: (self: ObjectWriter, value: any, type: any, length: any) => any;
 }
 declare namespace transforms {
     class ByteWriter extends Transform {

@@ -1,15 +1,15 @@
 namespace encoder.save {
 
-    export const writeHeader = function () {
-        this.write(new Buffer("RDX2\nX\n"));
-        this.write(encode_int(2));
-        this.write(encode_int(packed_version(3, 0, 0)));
-        this.write(encode_int(packed_version(2, 3, 0)));
+    export const writeHeader = function (vm: ObjectWriter) {
+        vm.write(new Buffer("RDX2\nX\n"));
+        vm.write(encode_int(2));
+        vm.write(encode_int(packed_version(3, 0, 0)));
+        vm.write(encode_int(packed_version(2, 3, 0)));
+
         return Promise.resolve();
     };
 
-    export const writeValue = function (value, type, length) {
-        let self = this;
+    export const writeValue = function (self: ObjectWriter, value, type, length) {
         // When we pass a buffer stream to the writeValue, we assume
         // that we are taking a stream of encoded bytes
         // If we wish to rewrite the length portion of the
@@ -19,7 +19,7 @@ namespace encoder.save {
             let target_stream = value;
 
             if (typeof length !== "undefined") {
-                target_stream = value.pipe(new LengthRewriter(length));
+                target_stream = value.pipe(new transforms.LengthRewriter(length));
             }
             target_stream.pipe(self.stream, { end: false });
 
@@ -32,19 +32,19 @@ namespace encoder.save {
         let value_written = null;
 
         if (type === "string") {
-            value_written = this.stringVector(value);
+            value_written = self.stringVector(value);
         }
         if (type === "int") {
-            value_written = this.intVector(value);
+            value_written = self.intVector(value);
         }
         if (type === "real") {
-            value_written = this.realVector(value);
+            value_written = self.realVector(value);
         }
         if (type === "logical") {
-            value_written = this.logicalVector(value);
+            value_written = self.logicalVector(value);
         }
         if (type.type === "dataframe") {
-            value_written = this.dataFrame(value, type.keys, type.types, (type.attributes ? { attributes: type.attributes } : {}));
+            value_written = self.dataFrame(value, type.keys, type.types, (type.attributes ? { attributes: type.attributes } : {}));
         }
 
         if (!value_written) {
@@ -53,35 +53,4 @@ namespace encoder.save {
 
         return value_written;
     };
-
-    export const write_vector = function (vector, method) {
-        let self = this;
-        if (vector instanceof Stream && vector._readableState.objectMode) {
-            let byte_pipe = vector.pipe(new ByteWriter(method.bind(self)));
-            byte_pipe.pipe(this.stream, { end: false });
-            return new Promise(function (resolve) {
-                // We want to specifically end
-                // the promise once we have no more
-                // readable elements left in the queue
-                byte_pipe.on("end", resolve);
-            });
-        } else {
-            return new Promise(function (resolve, reject) {
-                async.eachOfSeries(vector, function (el, idx, callback) {
-                    self.write(method(el));
-                    process.nextTick(callback);
-                }, function (err) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            }).catch(function (err) {
-                console.log(err);
-            });
-        }
-
-    };
-
 }
