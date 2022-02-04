@@ -1,4 +1,17 @@
 'use strict';
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 /*jshint esversion: 6, node:true, unused:false, varstmt:true */
 var archiver = require('archiver');
 var zlib = require('zlib');
@@ -381,32 +394,32 @@ var create_package = function (filedata, package_info) {
     archive.finalize();
     return gz;
 };
-function LengthRewriter(length, options) {
-    if (!(this instanceof LengthRewriter)) {
-        return new LengthRewriter(length, options);
+var LengthRewriter = /** @class */ (function (_super) {
+    __extends(LengthRewriter, _super);
+    function LengthRewriter(length, options) {
+        if (options === void 0) { options = { objectMode: false }; }
+        var _this = _super.call(this, options) || this;
+        options.objectMode = false;
+        _this.written_count = 0;
+        _this.length = length;
+        return _this;
     }
-    if (!options) {
-        options = {};
-    }
-    options.objectMode = false;
-    this.written_count = 0;
-    this.length = length;
-    Transform.call(this, options);
-}
-inherits(LengthRewriter, Transform);
-LengthRewriter.prototype._transform = function _transform(buf, encoding, callback) {
-    var written_count = this.written_count;
-    if (written_count <= 4) {
-        var offset = 4 - written_count;
-        if (offset >= 0 && offset < buf.length) {
-            buf.writeInt32BE(this.length || 0, offset);
+    LengthRewriter.prototype._transform = function (buf, encoding, callback) {
+        var written_count = this.written_count;
+        if (written_count <= 4) {
+            var offset = 4 - written_count;
+            if (offset >= 0 && offset < buf.length) {
+                buf.writeInt32BE(this.length || 0, offset);
+            }
+            written_count += buf.length;
         }
-        written_count += buf.length;
-    }
-    this.written_count = written_count;
-    this.push(buf);
-    callback();
-};
+        this.written_count = written_count;
+        this.push(buf);
+        callback();
+    };
+    ;
+    return LengthRewriter;
+}(Transform));
 function KeyExtractor(key, options) {
     if (!(this instanceof KeyExtractor)) {
         return new KeyExtractor(key, options);

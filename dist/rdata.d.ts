@@ -66,7 +66,14 @@ declare const extract_length: (stream: any) => Promise<{}>;
 declare const dataFrame: (object: any, keys: any, types: any, options: any) => any;
 declare const generate_description: (filedata: any, prefix: any) => string;
 declare const create_package: (filedata: any, package_info: any) => any;
-declare function LengthRewriter(length: any, options: any): any;
+declare class LengthRewriter extends Transform {
+    written_count: number;
+    length: number;
+    constructor(length: any, options?: {
+        objectMode: boolean;
+    });
+    _transform(buf: any, encoding: any, callback: any): void;
+}
 declare function KeyExtractor(key: any, options: any): any;
 declare function ByteWriter(transform: any, options: any): any;
 declare function ObjectCounter(options: any): any;
