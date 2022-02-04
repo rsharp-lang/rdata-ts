@@ -33,11 +33,23 @@
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
     <None Include="src\package.ts" />
-    <None Include="src\transforms.ts" />
+    <None Include="src\transforms\ObjectCounter.ts" />
     <None Include="src\object_writer.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\" />
+    <Folder Include="src\transforms\" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="src\transforms\KeyExtractor.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\transforms\LengthRewriter.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\transforms\ByteWriter.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
