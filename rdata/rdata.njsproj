@@ -38,9 +38,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\" />
+    <Folder Include="src\encoder\" />
     <Folder Include="src\transforms\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\encoder\dataframe.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\encoder\write.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\transforms\KeyExtractor.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -53,7 +60,7 @@
     <TypeScriptCompile Include="src\RInternal.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\encoder.ts">
+    <TypeScriptCompile Include="src\encoder\encoder.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>
