@@ -20,7 +20,7 @@ class ObjectWriter {
     logicalVector() { };
     listPairs() { };
     environment() { };
-    dataFrame() { };
+    dataFrame = (object, keys, types, options = {}) => encoder.dataFrame(this, object, keys, types, options);
     writeHeader() { };
 
     finish() {

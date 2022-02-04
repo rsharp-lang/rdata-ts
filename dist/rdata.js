@@ -138,7 +138,12 @@ var NA_REAL = new Buffer("7ff00000000007a2", "hex");
 var ObjectWriter = /** @class */ (function () {
     function ObjectWriter(stream, options) {
         if (options === void 0) { options = { gzip: true }; }
+        var _this = this;
         this.stream = stream;
+        this.dataFrame = function (object, keys, types, options) {
+            if (options === void 0) { options = {}; }
+            return encoder.dataFrame(_this, object, keys, types, options);
+        };
         if (options.gzip) {
             var gz = zlib.createGzip();
             gz.pipe(stream);
@@ -163,8 +168,6 @@ var ObjectWriter = /** @class */ (function () {
     ObjectWriter.prototype.listPairs = function () { };
     ;
     ObjectWriter.prototype.environment = function () { };
-    ;
-    ObjectWriter.prototype.dataFrame = function () { };
     ;
     ObjectWriter.prototype.writeHeader = function () { };
     ;
@@ -213,11 +216,8 @@ var package;
 })(package || (package = {}));
 var encoder;
 (function (encoder) {
-    encoder.dataFrame = function (object, keys, types, options) {
-        var self = this;
-        if (!options) {
-            options = {};
-        }
+    encoder.dataFrame = function (self, object, keys, types, options) {
+        if (options === void 0) { options = {}; }
         var length = options.length;
         if (object instanceof Stream && object._readableState.objectMode) {
             return (consume_frame_stream.bind(self))(object, keys, types, options);

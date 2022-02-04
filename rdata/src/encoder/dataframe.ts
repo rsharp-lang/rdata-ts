@@ -1,10 +1,6 @@
 namespace encoder {
 
-    export const dataFrame = function (object, keys, types, options) {
-        let self = this;
-        if (!options) {
-            options = {};
-        }
+    export const dataFrame = function (self: ObjectWriter, object, keys, types, options = {}) {
         let length = options.length;
         if (object instanceof Stream && object._readableState.objectMode) {
             return (consume_frame_stream.bind(self))(object, keys, types, options);

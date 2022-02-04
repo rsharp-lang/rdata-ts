@@ -131,7 +131,7 @@ declare class ObjectWriter {
     logicalVector(): void;
     listPairs(): void;
     environment(): void;
-    dataFrame(): void;
+    dataFrame: (object: any, keys: any, types: any, options?: {}) => any;
     writeHeader(): void;
     finish(): Promise<{}>;
 }
@@ -140,7 +140,7 @@ declare namespace package {
     function create_package(filedata: any, package_info: any): any;
 }
 declare namespace encoder {
-    const dataFrame: (object: any, keys: any, types: any, options: any) => any;
+    const dataFrame: (self: ObjectWriter, object: any, keys: any, types: any, options?: {}) => any;
 }
 declare namespace encoder {
 }
