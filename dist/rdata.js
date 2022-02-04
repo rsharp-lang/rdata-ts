@@ -1,16 +1,10 @@
 "use strict";
-console.log('Hello world');
 /*jshint esversion: 6, node:true, unused:false, varstmt:true */
 var async = require("async");
 var Stream = require("stream");
 var temp = require("temp");
 var fs = require("fs");
-var LengthRewriter = require("./transforms").LengthRewriter;
-var KeyExtractor = require("./transforms").KeyExtractor;
-var ByteWriter = require("./transforms").ByteWriter;
-var ObjectCounter = require("./transforms").ObjectCounter;
 var zlib = require("zlib");
-var create_package = require("./package").create_package;
 temp.track();
 function ObjectWriter(stream, options) {
     options = options || {};

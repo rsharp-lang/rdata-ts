@@ -5,14 +5,7 @@ const async = require("async");
 const Stream = require("stream");
 const temp = require("temp");
 const fs = require("fs");
-const LengthRewriter = require("./transforms").LengthRewriter;
-const KeyExtractor = require("./transforms").KeyExtractor;
-const ByteWriter = require("./transforms").ByteWriter;
-const ObjectCounter = require("./transforms").ObjectCounter;
 const zlib = require("zlib");
-
-const create_package = require("./package").create_package;
-
 
 temp.track();
 
