@@ -1,10 +1,14 @@
-"use strict";
+'use strict';
 /*jshint esversion: 6, node:true, unused:false, varstmt:true */
+var archiver = require('archiver');
+var zlib = require('zlib');
+var fs = require('fs');
 var async = require("async");
 var Stream = require("stream");
 var temp = require("temp");
-var fs = require("fs");
-var zlib = require("zlib");
+var Transform = require("stream").Transform;
+var inherits = require("util").inherits;
+var Null = Symbol("Null value");
 temp.track();
 function ObjectWriter(stream, options) {
     options = options || {};
@@ -353,21 +357,6 @@ ObjectWriter.prototype.finish = function () {
         self.stream.end();
     });
 };
-ObjectWriter.prototype.stringVector = stringVector;
-ObjectWriter.prototype.realVector = realVector;
-ObjectWriter.prototype.intVector = intVector;
-ObjectWriter.prototype.logicalVector = logicalVector;
-ObjectWriter.prototype.listPairs = listPairs;
-ObjectWriter.prototype.environment = environment;
-ObjectWriter.prototype.dataFrame = dataFrame;
-ObjectWriter.prototype.writeHeader = writeHeader;
-module.exports = ObjectWriter;
-module.exports.suffix = "RData.tar.gz";
-module.exports.package = create_package;
-/*jshint esversion: 6, node:true, unused:false, varstmt:true */
-var archiver = require('archiver');
-var zlib = require('zlib');
-var fs = require('fs');
 var generate_description = function (filedata, prefix) {
     var title = filedata.title;
     var version = filedata.version;
@@ -392,11 +381,6 @@ var create_package = function (filedata, package_info) {
     archive.finalize();
     return gz;
 };
-exports.create_package = create_package;
-/*jshint esversion: 6, node:true, unused:false, varstmt:true */
-var Transform = require("stream").Transform;
-var inherits = require("util").inherits;
-var Null = Symbol("Null value");
 function LengthRewriter(length, options) {
     if (!(this instanceof LengthRewriter)) {
         return new LengthRewriter(length, options);
@@ -474,8 +458,4 @@ ObjectCounter.prototype._transform = function _transform(obj, encoding, callback
     this.push(obj);
     callback();
 };
-exports.ObjectCounter = ObjectCounter;
-exports.ByteWriter = ByteWriter;
-exports.KeyExtractor = KeyExtractor;
-exports.LengthRewriter = LengthRewriter;
 //# sourceMappingURL=rdata.js.map
