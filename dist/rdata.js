@@ -370,30 +370,37 @@ ObjectWriter.prototype.finish = function () {
         self.stream.end();
     });
 };
-var generate_description = function (filedata, prefix) {
-    var title = filedata.title;
-    var version = filedata.version;
-    if (prefix) {
-        prefix = prefix + ".";
+var package;
+(function (package) {
+    function generate_description(filedata, prefix) {
+        var title = filedata.title;
+        var version = filedata.version;
+        if (prefix) {
+            prefix = prefix + ".";
+        }
+        var now = new Date().toISOString().split('T')[0];
+        var date = now;
+        var description = "Package: " + prefix + title + "\nVersion: " + version + "\nDate: " + date + "\nDepends: R (>= 3.1.0)\nDescription: " + title + "\nTitle: " + title + "\nLazyData: yes\nNeedsCompilation: yes";
+        return description;
     }
-    var now = new Date().toISOString().split('T')[0];
-    var date = now;
-    var description = "Package: " + prefix + title + "\nVersion: " + version + "\nDate: " + date + "\nDepends: R (>= 3.1.0)\nDescription: " + title + "\nTitle: " + title + "\nLazyData: yes\nNeedsCompilation: yes";
-    return description;
-};
-var create_package = function (filedata, package_info) {
-    var data_filename = package_info.data_filename;
-    var description = package_info.description;
-    var package_prefix = package_info.prefix || '';
-    var gz = zlib.createGzip();
-    var archive = archiver('tar', { store: true });
-    archive.pipe(gz);
-    archive.append(fs.createReadStream(filedata.path), { name: filedata.title + "/data/" + data_filename + ".rda" });
-    archive.append('', { name: filedata.title + "/NAMESPACE" });
-    archive.append(generate_description(filedata, package_prefix), { name: filedata.title + "/DESCRIPTION" });
-    archive.finalize();
-    return gz;
-};
+    package.generate_description = generate_description;
+    ;
+    function create_package(filedata, package_info) {
+        var data_filename = package_info.data_filename;
+        var description = package_info.description;
+        var package_prefix = package_info.prefix || '';
+        var gz = zlib.createGzip();
+        var archive = archiver('tar', { store: true });
+        archive.pipe(gz);
+        archive.append(fs.createReadStream(filedata.path), { name: filedata.title + "/data/" + data_filename + ".rda" });
+        archive.append('', { name: filedata.title + "/NAMESPACE" });
+        archive.append(generate_description(filedata, package_prefix), { name: filedata.title + "/DESCRIPTION" });
+        archive.finalize();
+        return gz;
+    }
+    package.create_package = create_package;
+    ;
+})(package || (package = {}));
 var LengthRewriter = /** @class */ (function (_super) {
     __extends(LengthRewriter, _super);
     function LengthRewriter(length, options) {

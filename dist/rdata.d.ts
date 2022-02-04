@@ -64,8 +64,10 @@ declare const environment: (pairs: any, types_map: any) => any;
 declare const consume_frame_stream: (objects: any, keys: any, types: any, options: any) => Promise<any>;
 declare const extract_length: (stream: any) => Promise<{}>;
 declare const dataFrame: (object: any, keys: any, types: any, options: any) => any;
-declare const generate_description: (filedata: any, prefix: any) => string;
-declare const create_package: (filedata: any, package_info: any) => any;
+declare namespace package {
+    function generate_description(filedata: any, prefix: any): string;
+    function create_package(filedata: any, package_info: any): any;
+}
 declare class LengthRewriter extends Transform {
     written_count: number;
     length: number;
