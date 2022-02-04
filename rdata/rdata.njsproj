@@ -31,8 +31,13 @@
   <ItemGroup>
     <None Include="app.ts" />
     <Content Include="package.json" />
-    <Content Include="README.md" />
     <Content Include="tsconfig.json" />
+    <None Include="src\package.ts" />
+    <None Include="src\transforms.ts" />
+    <None Include="src\object_writer.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
