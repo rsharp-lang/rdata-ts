@@ -1,29 +1,102 @@
-const NILSXP = 0;    /* nil = NULL */
-const SYMSXP = 1;    /* symbols */
-const LISTSXP = 2;    /* lists of dotted pairs */
-const CLOSXP = 3;    /* closures */
-const ENVSXP = 4;    /* environments */
-const PROMSXP = 5;    /* promises: [un]evaluated closure arguments */
-const LANGSXP = 6;    /* language constructs (special lists) */
-const SPECIALSXP = 7;    /* special forms */
-const BUILTINSXP = 8;    /* builtin non-special forms */
-const CHARSXP = 9;    /* "scalar" string type (internal only)*/
-const LGLSXP = 10;    /* logical vectors */
-const INTSXP = 13;    /* integer vectors */
-const REALSXP = 14;    /* real variables */
-const CPLXSXP = 15;    /* complex variables */
-const STRSXP = 16;    /* string vectors */
-const DOTSXP = 17;    /* dot-dot-dot object */
-const ANYSXP = 18;    /* make "any" args work.
-           Used in specifying types for symbol
-           registration to mean anything is okay  */
-const VECSXP = 19;   /* generic vectors */
-const EXPRSXP = 20;   /* expressions vectors */
-const BCODESXP = 21;   /* byte code */
-const EXTPTRSXP = 22;   /* external pointer */
-const RAWSXP = 24;   /* raw bytes */
-const S4SXP = 25;   /* S4, non-vector */
-const FUNSXP = 99;   /* Closure or Builtin or Special */
+
+/**
+ * nil = NULL
+*/
+const NILSXP = 0;
+/**
+ * symbols
+*/
+const SYMSXP = 1;
+/**
+ * lists of dotted pairs
+*/
+const LISTSXP = 2;
+/**
+ * closures 
+*/
+const CLOSXP = 3;
+/**
+ * environments
+*/
+const ENVSXP = 4;
+/**
+ * promises: [un]evaluated closure arguments
+*/
+const PROMSXP = 5;
+/**
+ * language constructs (special lists) 
+*/
+const LANGSXP = 6;
+/**
+ * special forms
+*/
+const SPECIALSXP = 7;
+/**
+ * builtin non-special forms 
+*/
+const BUILTINSXP = 8;
+/**
+ * "scalar" string type (internal only)
+*/
+const CHARSXP = 9;
+/**
+ * logical vectors
+*/
+const LGLSXP = 10;
+/**
+ * integer vectors 
+*/
+const INTSXP = 13;
+/**
+ * real variables 
+*/
+const REALSXP = 14;
+/**
+ * complex variables 
+*/
+const CPLXSXP = 15;
+/**
+ * string vectors 
+*/
+const STRSXP = 16;
+/**
+ * dot-dot-dot object
+*/
+const DOTSXP = 17;
+/**
+ * make "any" args work.
+ * Used in specifying types for symbol
+ * registration to mean anything is okay  
+*/
+const ANYSXP = 18;
+/**
+ * generic vectors 
+*/
+const VECSXP = 19;
+/**
+ * expressions vectors 
+*/
+const EXPRSXP = 20;
+/**
+ * byte code 
+*/
+const BCODESXP = 21;
+/**
+ * external pointer
+*/
+const EXTPTRSXP = 22;
+/**
+ * raw bytes 
+*/
+const RAWSXP = 24;
+/**
+ * S4, non-vector 
+*/
+const S4SXP = 25;
+/**
+ * Closure or Builtin or Special 
+*/
+const FUNSXP = 99;
 
 const NILVALUESXP = 254;
 const REFSXP = 255;
@@ -38,5 +111,8 @@ const HAS_TAG_BIT_MASK = (1 << 10);
 
 const NA_INT = -1 * Math.pow(2, 31);
 const NA_STRING = -1;
-// This is a special R constant value
+
+/**
+ * This is a special R constant value
+*/
 const NA_REAL = new Buffer("7ff00000000007a2", "hex");
