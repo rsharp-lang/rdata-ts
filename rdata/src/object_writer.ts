@@ -14,6 +14,15 @@ class ObjectWriter {
         this.stream.write(buffer);
     };
 
+    stringVector() { };
+    realVector() { };
+    intVector() { };
+    logicalVector() { };
+    listPairs() { };
+    environment() { };
+    dataFrame() { };
+    writeHeader() { };
+
     finish() {
         let self = this;
 
