@@ -401,81 +401,97 @@ var package;
     package.create_package = create_package;
     ;
 })(package || (package = {}));
-var LengthRewriter = /** @class */ (function (_super) {
-    __extends(LengthRewriter, _super);
-    function LengthRewriter(length, options) {
-        if (options === void 0) { options = { objectMode: false }; }
-        var _this = _super.call(this, options) || this;
-        options.objectMode = false;
-        _this.written_count = 0;
-        _this.length = length;
-        return _this;
-    }
-    LengthRewriter.prototype._transform = function (buf, encoding, callback) {
-        var written_count = this.written_count;
-        if (written_count <= 4) {
-            var offset = 4 - written_count;
-            if (offset >= 0 && offset < buf.length) {
-                buf.writeInt32BE(this.length || 0, offset);
-            }
-            written_count += buf.length;
+var transforms;
+(function (transforms) {
+    var ByteWriter = /** @class */ (function (_super) {
+        __extends(ByteWriter, _super);
+        function ByteWriter(transform, options) {
+            if (options === void 0) { options = { objectMode: true }; }
+            var _this = _super.call(this, transform, options) || this;
+            options.objectMode = true;
+            _this.transform = transform;
+            _this._readableState.objectMode = false;
+            return _this;
         }
-        this.written_count = written_count;
-        this.push(buf);
-        callback();
-    };
-    ;
-    return LengthRewriter;
-}(Transform));
-var KeyExtractor = /** @class */ (function (_super) {
-    __extends(KeyExtractor, _super);
-    function KeyExtractor(key, options) {
-        if (options === void 0) { options = { objectMode: true }; }
-        var _this = _super.call(this, key, options) || this;
-        options.objectMode = true;
-        console.log("Extracting key", key);
-        _this.key = key;
-        return _this;
-    }
-    KeyExtractor.prototype._transform = function (obj, encoding, callback) {
-        this.push(obj[this.key] || Null);
-        callback();
-    };
-    ;
-    return KeyExtractor;
-}(Transform));
-var ByteWriter = /** @class */ (function (_super) {
-    __extends(ByteWriter, _super);
-    function ByteWriter(transform, options) {
-        if (options === void 0) { options = { objectMode: true }; }
-        var _this = _super.call(this, transform, options) || this;
-        options.objectMode = true;
-        _this.transform = transform;
-        _this._readableState.objectMode = false;
-        return _this;
-    }
-    ByteWriter.prototype._transform = function (obj, encoding, callback) {
-        this.push(this.transform(obj === Null ? null : obj));
-        callback();
-    };
-    ;
-    return ByteWriter;
-}(Transform));
-var ObjectCounter = /** @class */ (function (_super) {
-    __extends(ObjectCounter, _super);
-    function ObjectCounter(options) {
-        if (options === void 0) { options = { objectMode: true }; }
-        var _this = _super.call(this, options) || this;
-        options.objectMode = true;
-        _this.total = 0;
-        return _this;
-    }
-    ObjectCounter.prototype._transform = function (obj, encoding, callback) {
-        this.total += 1;
-        this.push(obj);
-        callback();
-    };
-    ;
-    return ObjectCounter;
-}(Transform));
+        ByteWriter.prototype._transform = function (obj, encoding, callback) {
+            this.push(this.transform(obj === Null ? null : obj));
+            callback();
+        };
+        ;
+        return ByteWriter;
+    }(Transform));
+    transforms.ByteWriter = ByteWriter;
+})(transforms || (transforms = {}));
+var transforms;
+(function (transforms) {
+    var KeyExtractor = /** @class */ (function (_super) {
+        __extends(KeyExtractor, _super);
+        function KeyExtractor(key, options) {
+            if (options === void 0) { options = { objectMode: true }; }
+            var _this = _super.call(this, key, options) || this;
+            options.objectMode = true;
+            console.log("Extracting key", key);
+            _this.key = key;
+            return _this;
+        }
+        KeyExtractor.prototype._transform = function (obj, encoding, callback) {
+            this.push(obj[this.key] || Null);
+            callback();
+        };
+        ;
+        return KeyExtractor;
+    }(Transform));
+    transforms.KeyExtractor = KeyExtractor;
+})(transforms || (transforms = {}));
+var transforms;
+(function (transforms) {
+    var LengthRewriter = /** @class */ (function (_super) {
+        __extends(LengthRewriter, _super);
+        function LengthRewriter(length, options) {
+            if (options === void 0) { options = { objectMode: false }; }
+            var _this = _super.call(this, options) || this;
+            options.objectMode = false;
+            _this.written_count = 0;
+            _this.length = length;
+            return _this;
+        }
+        LengthRewriter.prototype._transform = function (buf, encoding, callback) {
+            var written_count = this.written_count;
+            if (written_count <= 4) {
+                var offset = 4 - written_count;
+                if (offset >= 0 && offset < buf.length) {
+                    buf.writeInt32BE(this.length || 0, offset);
+                }
+                written_count += buf.length;
+            }
+            this.written_count = written_count;
+            this.push(buf);
+            callback();
+        };
+        ;
+        return LengthRewriter;
+    }(Transform));
+    transforms.LengthRewriter = LengthRewriter;
+})(transforms || (transforms = {}));
+var transforms;
+(function (transforms) {
+    var ObjectCounter = /** @class */ (function (_super) {
+        __extends(ObjectCounter, _super);
+        function ObjectCounter(options) {
+            if (options === void 0) { options = { objectMode: true }; }
+            var _this = _super.call(this, options) || this;
+            options.objectMode = true;
+            _this.total = 0;
+            return _this;
+        }
+        ObjectCounter.prototype._transform = function (obj, encoding, callback) {
+            this.total += 1;
+            this.push(obj);
+            callback();
+        };
+        ;
+        return ObjectCounter;
+    }(Transform));
+    transforms.ObjectCounter = ObjectCounter;
+})(transforms || (transforms = {}));
 //# sourceMappingURL=rdata.js.map

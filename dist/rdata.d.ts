@@ -68,30 +68,38 @@ declare namespace package {
     function generate_description(filedata: any, prefix: any): string;
     function create_package(filedata: any, package_info: any): any;
 }
-declare class LengthRewriter extends Transform {
-    written_count: number;
-    length: number;
-    constructor(length: any, options?: {
-        objectMode: boolean;
-    });
-    _transform(buf: any, encoding: any, callback: any): void;
+declare namespace transforms {
+    class ByteWriter extends Transform {
+        constructor(transform: any, options?: {
+            objectMode: boolean;
+        });
+        _transform(obj: any, encoding: any, callback: any): void;
+    }
 }
-declare class KeyExtractor extends Transform {
-    constructor(key: any, options?: {
-        objectMode: boolean;
-    });
-    _transform(obj: any, encoding: any, callback: any): void;
+declare namespace transforms {
+    class KeyExtractor extends Transform {
+        constructor(key: any, options?: {
+            objectMode: boolean;
+        });
+        _transform(obj: any, encoding: any, callback: any): void;
+    }
 }
-declare class ByteWriter extends Transform {
-    constructor(transform: any, options?: {
-        objectMode: boolean;
-    });
-    _transform(obj: any, encoding: any, callback: any): void;
+declare namespace transforms {
+    class LengthRewriter extends Transform {
+        written_count: number;
+        length: number;
+        constructor(length: any, options?: {
+            objectMode: boolean;
+        });
+        _transform(buf: any, encoding: any, callback: any): void;
+    }
 }
-declare class ObjectCounter extends Transform {
-    total: number;
-    constructor(options?: {
-        objectMode: boolean;
-    });
-    _transform(obj: any, encoding: any, callback: any): void;
+declare namespace transforms {
+    class ObjectCounter extends Transform {
+        total: number;
+        constructor(options?: {
+            objectMode: boolean;
+        });
+        _transform(obj: any, encoding: any, callback: any): void;
+    }
 }
