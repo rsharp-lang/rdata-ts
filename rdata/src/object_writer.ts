@@ -1,14 +1,3 @@
-"use strict";
-/*jshint esversion: 6, node:true, unused:false, varstmt:true */
-
-const async = require("async");
-const Stream = require("stream");
-const temp = require("temp");
-const fs = require("fs");
-const zlib = require("zlib");
-
-temp.track();
-
 function ObjectWriter(stream,options) {
   options = options || {};
   if (options.gzip) {
@@ -390,20 +379,3 @@ ObjectWriter.prototype.finish = function() {
   });
 };
 
-
-
-ObjectWriter.prototype.stringVector = stringVector;
-ObjectWriter.prototype.realVector   = realVector;
-ObjectWriter.prototype.intVector    = intVector;
-ObjectWriter.prototype.logicalVector= logicalVector;
-ObjectWriter.prototype.listPairs    = listPairs;
-ObjectWriter.prototype.environment  = environment;
-ObjectWriter.prototype.dataFrame    = dataFrame;
-ObjectWriter.prototype.writeHeader  = writeHeader;
-
-
-
-
-module.exports = ObjectWriter;
-module.exports.suffix = "RData.tar.gz";
-module.exports.package = create_package;

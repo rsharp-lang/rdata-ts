@@ -1,10 +1,3 @@
-'use strict';
-/*jshint esversion: 6, node:true, unused:false, varstmt:true */
-
-const archiver = require('archiver');
-const zlib = require('zlib');
-const fs = require('fs');
-
 const generate_description = function(filedata, prefix) {
   let title = filedata.title;
   let version = filedata.version;
@@ -38,5 +31,3 @@ const create_package = function(filedata, package_info ) {
   archive.finalize();
   return gz;
 };
-
-exports.create_package = create_package;

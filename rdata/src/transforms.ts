@@ -1,10 +1,3 @@
-"use strict";
-/*jshint esversion: 6, node:true, unused:false, varstmt:true */
-
-const Transform = require("stream").Transform;
-const inherits = require("util").inherits;
-const Null = Symbol("Null value");
-
 function LengthRewriter(length,options) {
   if ( ! (this instanceof LengthRewriter)) {
     return new LengthRewriter(length,options);
@@ -104,8 +97,3 @@ ObjectCounter.prototype._transform = function _transform(obj, encoding, callback
   callback();
 };
 
-
-exports.ObjectCounter = ObjectCounter;
-exports.ByteWriter = ByteWriter;
-exports.KeyExtractor = KeyExtractor;
-exports.LengthRewriter = LengthRewriter;
