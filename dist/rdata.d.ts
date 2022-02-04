@@ -126,12 +126,13 @@ declare class ObjectWriter {
     });
     write(buffer: any): void;
     write_vector: (vector: any, method: any) => Promise<void | {}>;
+    writeValue: (value: any, type: any, length: any) => any;
     stringVector(vector: any): any;
     realVector(vector: any): any;
     intVector(vector: any): any;
     logicalVector(vector: any): any;
-    listPairs(): void;
-    environment(): void;
+    listPairs(pairs: any, keys: any, types: any): Promise<{}>;
+    environment(pairs: any, types_map: any): Promise<{}>;
     dataFrame: (object: any, keys: any, types: any, options?: {}) => any;
     writeHeader(): Promise<void>;
     finish(): Promise<{}>;
@@ -141,21 +142,30 @@ declare namespace package {
     function create_package(filedata: any, package_info: any): any;
 }
 declare namespace encoder {
-    const dataFrame: (self: ObjectWriter, object: any, keys: any, types: any, options?: {}) => any;
+    const dataFrame: (self: ObjectWriter, object: any, keys: any, types: any, options?: {
+        length: number;
+        attributes: {};
+    }) => any;
+}
+declare namespace encoder {
+    const symbol: (vm: ObjectWriter, string: any) => Promise<void>;
+    const listPairs: (self: ObjectWriter, pairs: any, keys: any, types: any) => Promise<{}>;
+    const environment: (self: ObjectWriter, pairs: any, types_map: any) => Promise<{}>;
+    const consume_frame_stream: (self: ObjectWriter, objects: any, keys: any, types: any, options: any) => Promise<any>;
 }
 declare namespace encoder {
     const packed_version: (v: any, p: any, s: any) => any;
     const encode_int: (value: any) => Buffer;
     const encode_real: (value: any) => Buffer;
-    const encode_flags: (base_type: any, options: any) => any;
+    const encode_flags: (base_type: number, options?: {
+        is_object: boolean;
+        has_attributes: boolean;
+        has_tag: boolean;
+    }) => number;
     const stringScalar: (string: any) => Buffer;
     const realScalar: (real: any) => Buffer;
     const intScalar: (int: any) => Buffer;
     const logicalScalar: (bool: any) => Buffer;
-    const symbol: (string: any) => Promise<void>;
-    const listPairs: (pairs: any, keys: any, types: any) => Promise<{}>;
-    const environment: (pairs: any, types_map: any) => any;
-    const consume_frame_stream: (objects: any, keys: any, types: any, options: any) => Promise<any>;
     const extract_length: (stream: any) => Promise<{}>;
 }
 declare namespace encoder {

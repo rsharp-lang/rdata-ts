@@ -19,7 +19,7 @@ namespace encoder {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve();
+                        resolve(null);
                     }
                 });
             }).catch(function (err) {

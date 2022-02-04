@@ -1,11 +1,12 @@
 namespace encoder {
 
-    export const dataFrame = function (self: ObjectWriter, object, keys, types, options = {}) {
+    export const dataFrame = function (self: ObjectWriter, object, keys, types, options = { length: 0, attributes: {} }) {
         let length = options.length;
+
         if (object instanceof Stream && object._readableState.objectMode) {
             return (consume_frame_stream.bind(self))(object, keys, types, options);
         }
-        this.write(encode_int(encode_flags(VECSXP, { is_object: true, has_attributes: true })));
+        this.write(encode_int(encode_flags(VECSXP, { is_object: true, has_attributes: true, has_tag: false })));
         this.write(encode_int(keys.length));
         if (length === null || typeof length === "undefined") {
             length = object[keys[0]].length;
@@ -19,7 +20,7 @@ namespace encoder {
 
         return new Promise(function (resolve, reject) {
             async.eachOfSeries(keys, function (column, idx, callback) {
-                writeValue.call(self, object[column], types[idx], options.length).then(callback);
+                self.writeValue(object[column], types[idx], options.length).then(callback);
             }, function (err) {
                 if (err) {
                     reject(err);

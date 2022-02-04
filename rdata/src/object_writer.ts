@@ -15,38 +15,43 @@ class ObjectWriter {
     };
 
     write_vector = (vector, method) => encoder.write_vector(this, vector, method);
+    writeValue = (value, type, length) => encoder.save.writeValue(this, value, type, length);
 
     stringVector(vector) {
         let self = this;
-        this.write(encode_int(encode_flags(STRSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, stringScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(STRSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.stringScalar);
     };
 
     realVector(vector) {
         let self = this;
-        this.write(encode_int(encode_flags(REALSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, realScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(REALSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.realScalar);
     };
 
     intVector(vector) {
         let self = this;
-        this.write(encode_int(encode_flags(INTSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, intScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(INTSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.intScalar);
     };
 
     logicalVector(vector) {
         let self = this;
-        this.write(encode_int(encode_flags(LGLSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, logicalScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(LGLSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.logicalScalar);
     };
 
-    listPairs() { };
-    environment() { };
-    dataFrame = (object, keys, types, options = {}) => encoder.dataFrame(this, object, keys, types, options);
+    listPairs(pairs, keys, types) {
+        return encoder.listPairs(this, pairs, keys, types);
+    };
+    environment(pairs, types_map) {
+        return encoder.environment(this, pairs, types_map);
+    };
+    dataFrame = (object, keys, types, options = {}) => encoder.dataFrame(this, object, keys, types, <any>options);
 
     writeHeader() {
         return encoder.save.writeHeader(this);

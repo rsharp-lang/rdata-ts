@@ -141,6 +141,7 @@ var ObjectWriter = /** @class */ (function () {
         var _this = this;
         this.stream = stream;
         this.write_vector = function (vector, method) { return encoder.write_vector(_this, vector, method); };
+        this.writeValue = function (value, type, length) { return encoder.save.writeValue(_this, value, type, length); };
         this.dataFrame = function (object, keys, types, options) {
             if (options === void 0) { options = {}; }
             return encoder.dataFrame(_this, object, keys, types, options);
@@ -160,35 +161,39 @@ var ObjectWriter = /** @class */ (function () {
     ;
     ObjectWriter.prototype.stringVector = function (vector) {
         var self = this;
-        this.write(encode_int(encode_flags(STRSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, stringScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(STRSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.stringScalar);
     };
     ;
     ObjectWriter.prototype.realVector = function (vector) {
         var self = this;
-        this.write(encode_int(encode_flags(REALSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, realScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(REALSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.realScalar);
     };
     ;
     ObjectWriter.prototype.intVector = function (vector) {
         var self = this;
-        this.write(encode_int(encode_flags(INTSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, intScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(INTSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.intScalar);
     };
     ;
     ObjectWriter.prototype.logicalVector = function (vector) {
         var self = this;
-        this.write(encode_int(encode_flags(LGLSXP)));
-        this.write(encode_int(vector.length || vector.total));
-        return write_vector.bind(self)(vector, logicalScalar);
+        this.write(encoder.encode_int(encoder.encode_flags(LGLSXP)));
+        this.write(encoder.encode_int(vector.length || vector.total));
+        return this.write_vector.bind(self)(vector, encoder.logicalScalar);
     };
     ;
-    ObjectWriter.prototype.listPairs = function () { };
+    ObjectWriter.prototype.listPairs = function (pairs, keys, types) {
+        return encoder.listPairs(this, pairs, keys, types);
+    };
     ;
-    ObjectWriter.prototype.environment = function () { };
+    ObjectWriter.prototype.environment = function (pairs, types_map) {
+        return encoder.environment(this, pairs, types_map);
+    };
     ;
     ObjectWriter.prototype.writeHeader = function () {
         return encoder.save.writeHeader(this);
@@ -240,12 +245,12 @@ var package;
 var encoder;
 (function (encoder) {
     encoder.dataFrame = function (self, object, keys, types, options) {
-        if (options === void 0) { options = {}; }
+        if (options === void 0) { options = { length: 0, attributes: {} }; }
         var length = options.length;
         if (object instanceof Stream && object._readableState.objectMode) {
             return (encoder.consume_frame_stream.bind(self))(object, keys, types, options);
         }
-        this.write(encoder.encode_int(encoder.encode_flags(VECSXP, { is_object: true, has_attributes: true })));
+        this.write(encoder.encode_int(encoder.encode_flags(VECSXP, { is_object: true, has_attributes: true, has_tag: false })));
         this.write(encoder.encode_int(keys.length));
         if (length === null || typeof length === "undefined") {
             length = object[keys[0]].length;
@@ -259,7 +264,7 @@ var encoder;
         length.then(function (val) { return console.log("Writing data frame of length ", val); });
         return new Promise(function (resolve, reject) {
             async.eachOfSeries(keys, function (column, idx, callback) {
-                writeValue.call(self, object[column], types[idx], options.length).then(callback);
+                self.writeValue(object[column], types[idx], options.length).then(callback);
             }, function (err) {
                 if (err) {
                     reject(err);
@@ -288,6 +293,70 @@ var encoder;
 })(encoder || (encoder = {}));
 var encoder;
 (function (encoder) {
+    encoder.symbol = function (vm, string) {
+        vm.write(encoder.encode_int(encoder.encode_flags(SYMSXP)));
+        vm.write(encoder.stringScalar(string));
+        return Promise.resolve();
+    };
+    encoder.listPairs = function (self, pairs, keys, types) {
+        return new Promise(function (resolve, reject) {
+            async.eachOfSeries(keys, function (key, idx, callback) {
+                self.write(encoder.encode_int(encoder.encode_flags(LISTSXP, { has_tag: true, is_object: false, has_attributes: false })));
+                encoder.symbol.call(self, key);
+                self.writeValue(pairs[key], types[idx]).then(callback).catch(callback);
+            }, function (err) {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    self.write(encoder.encode_int(NILVALUESXP));
+                    resolve(null);
+                }
+            });
+        });
+    };
+    encoder.environment = function (self, pairs, types_map) {
+        var keys = Object.keys(pairs);
+        var types = keys.map(function (key) { return types_map[key]; });
+        return self.listPairs(pairs, keys, types);
+    };
+    encoder.consume_frame_stream = function (self, objects, keys, types, options) {
+        var outputs = keys.map(function (key, idx) {
+            var stream = new Stream.PassThrough({ objectMode: true });
+            var output = new ObjectWriter(temp.createWriteStream());
+            output.path = output.stream.path;
+            // The streams we write out have incorrect
+            // length values, but they get rewritten
+            // once we put the stream back together again
+            var promise = self.writeValue(output, stream, types[idx], 0);
+            promise.catch(function (err) { return console.log(err); });
+            promise.then(function () { return output.stream.end(); });
+            output.promise = new Promise(function (resolve, reject) {
+                output.stream.on("finish", resolve);
+                output.stream.on("error", reject);
+            });
+            output.instream = stream;
+            return output;
+        });
+        var counter = new transforms.ObjectCounter();
+        objects.setMaxListeners(2 * outputs.length);
+        outputs.forEach(function (output, idx) {
+            (idx === 0 ? objects.pipe(counter) : objects).pipe(new transforms.KeyExtractor(keys[idx])).pipe(output.instream);
+        });
+        return Promise.all(outputs.map(function (output) { return output.promise; })).then(function () {
+            var filenames = outputs.map(function (output) { return output.path; });
+            var streams = filenames.map(function (file) { return fs.createReadStream(file); });
+            var frame = {};
+            keys.forEach(function (key, idx) {
+                frame[key] = streams[idx];
+            });
+            options.length = counter.total;
+            return self.dataFrame(frame, keys, types, options);
+        });
+    };
+})(encoder || (encoder = {}));
+var encoder;
+(function (encoder) {
     encoder.packed_version = function (v, p, s) {
         return s + (p * 256) + (v * 65536);
     };
@@ -302,9 +371,7 @@ var encoder;
         return buf;
     };
     encoder.encode_flags = function (base_type, options) {
-        if (!options) {
-            options = {};
-        }
+        if (options === void 0) { options = { is_object: false, has_attributes: false, has_tag: false }; }
         var flags = base_type;
         if (options.is_object) {
             flags |= IS_OBJECT_BIT_MASK;
@@ -349,68 +416,6 @@ var encoder;
         }
         return encoder.encode_int(bool ? 1 : 0);
     };
-    encoder.symbol = function (string) {
-        this.write(encoder.encode_int(encoder.encode_flags(SYMSXP)));
-        this.write(encoder.stringScalar(string));
-        return Promise.resolve();
-    };
-    encoder.listPairs = function (pairs, keys, types) {
-        var self = this;
-        return new Promise(function (resolve, reject) {
-            async.eachOfSeries(keys, function (key, idx, callback) {
-                self.write(encoder.encode_int(encoder.encode_flags(LISTSXP, { has_tag: true })));
-                encoder.symbol.call(self, key);
-                writeValue.call(self, pairs[key], types[idx]).then(callback).catch(callback);
-            }, function (err) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    self.write(encoder.encode_int(NILVALUESXP));
-                    resolve();
-                }
-            });
-        });
-    };
-    encoder.environment = function (pairs, types_map) {
-        var self = this;
-        var keys = Object.keys(pairs);
-        var types = keys.map(function (key) { return types_map[key]; });
-        return self.listPairs(pairs, keys, types);
-    };
-    encoder.consume_frame_stream = function (objects, keys, types, options) {
-        var self = this;
-        var outputs = keys.map(function (key, idx) {
-            var stream = new Stream.PassThrough({ objectMode: true });
-            var output = new ObjectWriter(temp.createWriteStream());
-            output.path = output.stream.path;
-            // The streams we write out have incorrect
-            // length values, but they get rewritten
-            // once we put the stream back together again
-            var promise = writeValue.call(output, stream, types[idx], 0);
-            promise.catch(function (err) { return console.log(err); });
-            promise.then(function () { return output.stream.end(); });
-            output.promise = new Promise(function (resolve, reject) {
-                output.stream.on("finish", resolve);
-                output.stream.on("error", reject);
-            });
-            output.instream = stream;
-            return output;
-        });
-        var counter = new ObjectCounter();
-        objects.setMaxListeners(2 * outputs.length);
-        outputs.forEach(function (output, idx) { (idx === 0 ? objects.pipe(counter) : objects).pipe(new KeyExtractor(keys[idx])).pipe(output.instream); });
-        return Promise.all(outputs.map(function (output) { return output.promise; })).then(function () {
-            var filenames = outputs.map(function (output) { return output.path; });
-            var streams = filenames.map(function (file) { return fs.createReadStream(file); });
-            var frame = {};
-            keys.forEach(function (key, idx) {
-                frame[key] = streams[idx];
-            });
-            options.length = counter.total;
-            return self.dataFrame(frame, keys, types, options);
-        });
-    };
     encoder.extract_length = function (stream) {
         return new Promise(function (resolve, reject) {
             stream.on("error", reject);
@@ -449,7 +454,7 @@ var encoder;
                         reject(err);
                     }
                     else {
-                        resolve();
+                        resolve(null);
                     }
                 });
             }).catch(function (err) {

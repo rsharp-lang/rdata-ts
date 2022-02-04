@@ -16,11 +16,9 @@ namespace encoder {
         return buf;
     };
 
-    export const encode_flags = function (base_type, options) {
-        if (!options) {
-            options = {};
-        }
+    export const encode_flags = function (base_type: number, options = { is_object: false, has_attributes: false, has_tag: false }) {
         let flags = base_type;
+
         if (options.is_object) {
             flags |= IS_OBJECT_BIT_MASK;
         }
@@ -70,71 +68,6 @@ namespace encoder {
             return encode_int(NA_INT);
         }
         return encode_int(bool ? 1 : 0);
-    };
-
-    export const symbol = function (string) {
-        this.write(encode_int(encode_flags(SYMSXP)));
-        this.write(stringScalar(string));
-        return Promise.resolve();
-    };
-
-    export const listPairs = function (pairs, keys, types) {
-        let self = this;
-        return new Promise(function (resolve, reject) {
-            async.eachOfSeries(keys, function (key, idx, callback) {
-                self.write(encode_int(encode_flags(LISTSXP, { has_tag: true })));
-                symbol.call(self, key);
-                writeValue.call(self, pairs[key], types[idx]).then(callback).catch(callback);
-            }, function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    self.write(encode_int(NILVALUESXP));
-                    resolve();
-                }
-            });
-        });
-    };
-
-    export const environment = function (pairs, types_map) {
-        let self = this;
-        let keys = Object.keys(pairs);
-        let types = keys.map((key) => types_map[key]);
-        return self.listPairs(pairs, keys, types);
-    };
-
-    export const consume_frame_stream = function (objects, keys, types, options) {
-        let self = this;
-        let outputs = keys.map(function (key, idx) {
-            let stream = new Stream.PassThrough({ objectMode: true });
-            let output = new ObjectWriter(temp.createWriteStream());
-            output.path = output.stream.path;
-            // The streams we write out have incorrect
-            // length values, but they get rewritten
-            // once we put the stream back together again
-            let promise = writeValue.call(output, stream, types[idx], 0);
-            promise.catch((err) => console.log(err));
-            promise.then(() => output.stream.end());
-            output.promise = new Promise(function (resolve, reject) {
-                output.stream.on("finish", resolve);
-                output.stream.on("error", reject);
-            });
-            output.instream = stream;
-            return output;
-        });
-        let counter = new ObjectCounter();
-        objects.setMaxListeners(2 * outputs.length);
-        outputs.forEach((output, idx) => { (idx === 0 ? objects.pipe(counter) : objects).pipe(new KeyExtractor(keys[idx])).pipe(output.instream); });
-        return Promise.all(outputs.map((output) => output.promise)).then(function () {
-            let filenames = outputs.map((output) => output.path);
-            let streams = filenames.map((file) => fs.createReadStream(file));
-            let frame = {};
-            keys.forEach(function (key, idx) {
-                frame[key] = streams[idx];
-            });
-            options.length = counter.total;
-            return self.dataFrame(frame, keys, types, options);
-        });
     };
 
     export const extract_length = function (stream) {

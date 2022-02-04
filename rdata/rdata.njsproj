@@ -45,6 +45,9 @@
     <TypeScriptCompile Include="src\encoder\dataframe.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\encoder\elements.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\encoder\vector.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
