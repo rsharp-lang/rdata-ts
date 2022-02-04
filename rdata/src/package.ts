@@ -1,7 +1,7 @@
-const generate_description = function(filedata, prefix) {
+const generate_description = function (filedata, prefix) {
   let title = filedata.title;
   let version = filedata.version;
-  if ( prefix ) {
+  if (prefix) {
     prefix = `${prefix}.`;
   }
   let now = new Date().toISOString().split('T')[0];
@@ -18,7 +18,7 @@ NeedsCompilation: yes`;
   return description;
 };
 
-const create_package = function(filedata, package_info ) {
+const create_package = function (filedata, package_info) {
   let data_filename = package_info.data_filename;
   let description = package_info.description;
   let package_prefix = package_info.prefix || '';
@@ -27,7 +27,7 @@ const create_package = function(filedata, package_info ) {
   archive.pipe(gz);
   archive.append(fs.createReadStream(filedata.path), { name: `${filedata.title}/data/${data_filename}.rda` });
   archive.append('', { name: `${filedata.title}/NAMESPACE` });
-  archive.append(generate_description(filedata,package_prefix),{ name: `${filedata.title}/DESCRIPTION` });
+  archive.append(generate_description(filedata, package_prefix), { name: `${filedata.title}/DESCRIPTION` });
   archive.finalize();
   return gz;
 };

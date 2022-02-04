@@ -1,9 +1,9 @@
-function LengthRewriter(length,options) {
-  if ( ! (this instanceof LengthRewriter)) {
-    return new LengthRewriter(length,options);
+function LengthRewriter(length, options) {
+  if (!(this instanceof LengthRewriter)) {
+    return new LengthRewriter(length, options);
   }
 
-  if (! options) {
+  if (!options) {
     options = {};
   }
   options.objectMode = false;
@@ -21,7 +21,7 @@ LengthRewriter.prototype._transform = function _transform(buf, encoding, callbac
   if (written_count <= 4) {
     let offset = 4 - written_count;
     if (offset >= 0 && offset < buf.length) {
-      buf.writeInt32BE(this.length || 0,offset);
+      buf.writeInt32BE(this.length || 0, offset);
     }
     written_count += buf.length;
   }
@@ -32,16 +32,16 @@ LengthRewriter.prototype._transform = function _transform(buf, encoding, callbac
   callback();
 };
 
-function KeyExtractor(key,options) {
-  if ( ! (this instanceof KeyExtractor)) {
-    return new KeyExtractor(key,options);
+function KeyExtractor(key, options) {
+  if (!(this instanceof KeyExtractor)) {
+    return new KeyExtractor(key, options);
   }
 
-  if (! options) {
+  if (!options) {
     options = {};
   }
   options.objectMode = true;
-  console.log("Extracting key",key);
+  console.log("Extracting key", key);
   this.key = key;
   Transform.call(this, options);
 }
@@ -54,12 +54,12 @@ KeyExtractor.prototype._transform = function _transform(obj, encoding, callback)
 };
 
 
-function ByteWriter(transform,options) {
-  if ( ! (this instanceof ByteWriter)) {
-    return new ByteWriter(transform,options);
+function ByteWriter(transform, options) {
+  if (!(this instanceof ByteWriter)) {
+    return new ByteWriter(transform, options);
   }
 
-  if (! options) {
+  if (!options) {
     options = {};
   }
   options.objectMode = true;
@@ -77,11 +77,11 @@ ByteWriter.prototype._transform = function _transform(obj, encoding, callback) {
 
 
 function ObjectCounter(options) {
-  if ( ! (this instanceof ObjectCounter)) {
+  if (!(this instanceof ObjectCounter)) {
     return new ObjectCounter(options);
   }
 
-  if (! options) {
+  if (!options) {
     options = {};
   }
   options.objectMode = true;
