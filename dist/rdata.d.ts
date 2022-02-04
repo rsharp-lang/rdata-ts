@@ -76,4 +76,10 @@ declare class LengthRewriter extends Transform {
 }
 declare function KeyExtractor(key: any, options: any): any;
 declare function ByteWriter(transform: any, options: any): any;
-declare function ObjectCounter(options: any): any;
+declare class ObjectCounter extends Transform {
+    total: number;
+    constructor(options?: {
+        objectMode: boolean;
+    });
+    _transform(obj: any, encoding: any, callback: any): void;
+}

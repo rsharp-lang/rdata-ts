@@ -77,24 +77,19 @@ ByteWriter.prototype._transform = function _transform(obj, encoding, callback) {
 };
 
 
-function ObjectCounter(options) {
-  if (!(this instanceof ObjectCounter)) {
-    return new ObjectCounter(options);
+class ObjectCounter extends Transform {
+
+  public total: number;
+
+  public constructor(options = { objectMode: true }) {
+    super(options);
+    options.objectMode = true;
+    this.total = 0;
   }
 
-  if (!options) {
-    options = {};
-  }
-  options.objectMode = true;
-  this.total = 0;
-  Transform.call(this, options);
+  _transform(obj, encoding, callback) {
+    this.total += 1;
+    this.push(obj);
+    callback();
+  };
 }
-
-inherits(ObjectCounter, Transform);
-
-ObjectCounter.prototype._transform = function _transform(obj, encoding, callback) {
-  this.total += 1;
-  this.push(obj);
-  callback();
-};
-

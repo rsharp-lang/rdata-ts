@@ -454,21 +454,21 @@ ByteWriter.prototype._transform = function _transform(obj, encoding, callback) {
     this.push(this.transform(obj === Null ? null : obj));
     callback();
 };
-function ObjectCounter(options) {
-    if (!(this instanceof ObjectCounter)) {
-        return new ObjectCounter(options);
+var ObjectCounter = /** @class */ (function (_super) {
+    __extends(ObjectCounter, _super);
+    function ObjectCounter(options) {
+        if (options === void 0) { options = { objectMode: true }; }
+        var _this = _super.call(this, options) || this;
+        options.objectMode = true;
+        _this.total = 0;
+        return _this;
     }
-    if (!options) {
-        options = {};
-    }
-    options.objectMode = true;
-    this.total = 0;
-    Transform.call(this, options);
-}
-inherits(ObjectCounter, Transform);
-ObjectCounter.prototype._transform = function _transform(obj, encoding, callback) {
-    this.total += 1;
-    this.push(obj);
-    callback();
-};
+    ObjectCounter.prototype._transform = function (obj, encoding, callback) {
+        this.total += 1;
+        this.push(obj);
+        callback();
+    };
+    ;
+    return ObjectCounter;
+}(Transform));
 //# sourceMappingURL=rdata.js.map
